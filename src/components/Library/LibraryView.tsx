@@ -19,7 +19,8 @@ import {
   ArrowUpDown,
   X,
   File,
-  RotateCcw
+  RotateCcw,
+  Settings2
 } from 'lucide-react';
 
 interface LibraryViewProps {
@@ -36,6 +37,7 @@ interface LibraryViewProps {
   onMoveToFolder: (id: string, folderId: string | undefined) => void;
   onCreateFolder: (name: string, parentId?: string | null) => void;
   onDeleteFolder: (folderId: string) => void;
+  onOpenSettings: () => void;
 }
 
 interface FolderTreeItemProps {
@@ -193,7 +195,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onEmptyRecycleBin,
   onMoveToFolder,
   onCreateFolder,
-  onDeleteFolder
+  onDeleteFolder,
+  onOpenSettings
 }) => {
   // Sidebar expansion & folder section state
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(true);
@@ -445,6 +448,19 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           {/* Top Right Actions Group */}
           <div className="flex items-center gap-3">
+            <button
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenSettings();
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#2d2b28] bg-[#1d1c1a] text-[#a8a49d] transition-colors hover:bg-[#272523] hover:text-[#f5f4f0]"
+              title="App settings"
+              aria-label="Open app settings"
+            >
+              <Settings2 size={16} />
+            </button>
+
             {/* Search Bar */}
             <div className="relative w-56 sm:w-64">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#78716c]" />

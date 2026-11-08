@@ -8,6 +8,7 @@ import { PageSettingsDialog } from './components/Dialogs/PageSettingsDialog';
 import { PageOverviewDrawer } from './components/Dialogs/PageOverviewDrawer';
 import { ExportDialog } from './components/Dialogs/ExportDialog';
 import { AboutDialog } from './components/Dialogs/AboutDialog';
+import { CloudSettingsDialog } from './components/Dialogs/CloudSettingsDialog';
 import { PageEngine } from './pages/PageEngine';
 
 export function App() {
@@ -70,6 +71,7 @@ export function App() {
   } = useDocumentStore();
 
   const [customTemplateImage, setCustomTemplateImage] = useState<HTMLImageElement | null>(null);
+  const [cloudSettingsOpen, setCloudSettingsOpen] = useState(false);
 
   // Load custom template image if present in document
   useEffect(() => {
@@ -217,8 +219,9 @@ export function App() {
         onEmptyRecycleBin={emptyRecycleBin}
         onMoveToFolder={moveToFolder}
         onCreateFolder={createFolder}
-        onDeleteFolder={deleteFolder}
-      />
+          onDeleteFolder={deleteFolder}
+          onOpenSettings={() => setCloudSettingsOpen(true)}
+        />
     );
   }
 
@@ -326,6 +329,12 @@ export function App() {
         document={currentDoc}
         onClose={() => setExportDialogOpen(false)}
         customTemplateImage={customTemplateImage}
+      />
+
+      <CloudSettingsDialog
+        isOpen={cloudSettingsOpen}
+        documents={docList}
+        onClose={() => setCloudSettingsOpen(false)}
       />
 
       {/* About & Guide Dialog */}
