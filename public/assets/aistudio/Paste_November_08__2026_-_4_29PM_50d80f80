@@ -1,0 +1,1330 @@
+# ONE BOOK — Complete Product, UI, System Architecture & Development Specification
+
+## 1. Project Overview
+
+Build a fully functional digital note-taking application named **One Book**, written entirely in TypeScript.
+
+One Book should combine the flexibility of Samsung Notes, the document-flow experience of Microsoft Word and Google Docs, and the freedom of an infinite digital canvas.
+
+It should be designed primarily for desktop and tablet use, with proper support for mouse, touchscreens and stylus input.
+
+This is not supposed to be a static UI prototype. Build a functional application with a properly structured codebase, working interactions, persistent storage, a drawing engine, a rich-text editor and a flexible document rendering system.
+
+### Core philosophy
+
+One Book should feel like an actual digital notebook rather than a conventional productivity dashboard.
+
+It should be:
+- Minimal and distraction-free.
+- Extremely responsive when writing or drawing.
+- Flexible in how pages and documents are displayed.
+- Capable of handling both handwriting and conventional typed documents.
+- Customisable without overwhelming the user.
+- Designed around a consistent, understated visual language.
+
+---
+
+# 2. Visual Design System
+
+## Overall appearance
+
+Use an exclusively monochromatic visual identity.
+
+The entire application interface should use different shades of:
+
+- Black.
+- White.
+- Light grey.
+- Medium grey.
+- Dark grey.
+- Off-white.
+
+Do not introduce colourful gradients, coloured accents, neon colours, glassmorphism or unnecessary decorative elements.
+
+The application should look sophisticated, editorial and slightly vintage.
+
+### Typography
+
+Use a vintage-inspired serif typeface.
+
+Recommended combination:
+
+- **Cormorant Garamond:** Application titles, notebook titles and prominent headings.
+- **Lora:** Main interface typography and default document typography.
+- **IBM Plex Mono:** Measurements, technical information and optional typewriter-style text.
+
+Use suitable serif fallbacks if the preferred fonts cannot be loaded.
+
+The fonts should feel traditional without compromising readability.
+
+### UI characteristics
+
+- Dark charcoal navigation and toolbars.
+- Subtle variations in grey for active and inactive controls.
+- Thin, restrained borders.
+- Rounded popups with moderate corner radii.
+- Minimal shadows.
+- Consistent icon sizes.
+- Small, unobtrusive tooltips.
+- No excessive animations.
+- Smooth transitions when opening and closing menus.
+
+The interface should take visual inspiration from the supplied Samsung Notes screenshots, but should have its own coherent identity.
+
+---
+
+# 3. Main Application Layout
+
+The main note-taking interface should have three primary components.
+
+## A. Top Navigation Bar
+
+A slim horizontal toolbar containing:
+
+1. Back button to return to the notebook/library.
+2. Editable notebook title.
+3. Page overview/navigation button.
+4. Insert button.
+5. Fit-to-view/fullscreen button.
+6. More options menu.
+
+The page overview button should open a panel showing document pages or a navigable overview of the infinite canvas.
+
+The insert button should provide options for inserting supported external content, including images and PDFs.
+
+The fullscreen button should toggle between normal and distraction-free viewing.
+
+The more options menu should contain document settings, page configuration, export, import and other secondary operations.
+
+## B. Left Vertical Toolbar
+
+Create a permanently accessible vertical toolbar inspired by the second reference image.
+
+The toolbar should include:
+
+1. Keyboard/text tool.
+2. Pen tool.
+3. Highlighter tool.
+4. Eraser.
+5. Lasso selection tool.
+6. Shapes and straight-line tool.
+7. A separator.
+8. Quick-access colour swatches.
+9. Quick-access stroke-width presets.
+10. Undo and redo.
+
+Icons should be minimal, recognisable and monochromatic.
+
+The selected tool should have a subtle grey background highlight.
+
+When a tool is selected, its corresponding settings popup should be available.
+
+## C. Main Writing Surface
+
+The majority of the screen must be occupied by the actual notebook.
+
+The writing surface should support all three document formats described below.
+
+It must support:
+- Stylus handwriting.
+- Mouse drawing.
+- Touch gestures.
+- Text editing.
+- Zooming.
+- Panning where applicable.
+- Automatic page generation.
+- Background templates.
+- Imported template assets.
+
+The writing surface should not have unnecessary interface elements covering the actual writing area.
+
+---
+
+# 4. Document and Page Architecture
+
+This is one of the most important features of One Book.
+
+There should be three fundamentally different page formats.
+
+Users should be able to switch between them through document settings.
+
+## Format 1: Split Pages
+
+This is the conventional notebook experience.
+
+Each page should be a separate A4 sheet with a visible gap between consecutive sheets.
+
+Requirements:
+
+- Each page must be exactly A4.
+- Support portrait and landscape orientation.
+- Each sheet should have clearly defined boundaries.
+- Page colour and template should be independently configurable at document level.
+- Pages should appear automatically as the user continues writing or scrolling.
+- Users should never have to manually click an Add Page button to continue writing.
+- Content should be clipped to its respective page boundaries.
+- Support both vertical and horizontal scrolling.
+
+When vertical scrolling is selected, pages should be stacked vertically.
+
+When horizontal scrolling is selected, pages should be arranged horizontally.
+
+The space between pages should be subtle and consistent.
+
+## Format 2: Infinite Scroll
+
+This should behave like a continuous notebook made of A4 pages.
+
+Unlike Split Pages, consecutive sheets should have no visible gap between them.
+
+Requirements:
+
+- A4 page dimensions remain fixed.
+- Support portrait and landscape orientation.
+- Pages should be seamlessly connected.
+- No unnecessary margins between consecutive pages.
+- New pages should appear automatically as the user approaches the end of the existing writing area.
+- No manual page creation should be necessary.
+- Support vertical and horizontal scrolling.
+- Templates and page colours should continue consistently between pages.
+
+For example, in vertical portrait mode, the notebook should behave like an endless vertical strip of connected A4 sheets.
+
+In horizontal mode, the same principle should apply horizontally.
+
+## Format 3: Infinite Canvas
+
+This should provide a genuinely unrestricted workspace.
+
+There should be no fixed page boundaries or predetermined canvas dimensions.
+
+Requirements:
+
+- Users should be able to pan indefinitely.
+- Users should be able to zoom in and out.
+- The visible workspace should expand dynamically as the user pans or zooms into new areas.
+- Drawing and writing should remain anchored to their original world coordinates.
+- No visible page transitions or gaps.
+- Templates should repeat continuously across the entire workspace.
+- The background should remain consistent regardless of how far the user travels across the canvas.
+
+The application must not create one enormous bitmap for the infinite background.
+
+Instead, use a repeating pattern or dynamically rendered background tiles.
+
+As the viewport moves, render only the tiles currently required.
+
+### CRITICAL: Switching Between Formats
+
+Implement this carefully.
+
+The three formats must share a common underlying document-content model.
+
+Changing the format must NEVER delete existing content.
+
+For example:
+
+1. A user writes something on the right side of an infinite canvas.
+2. They switch to Split Pages.
+3. Content outside the active A4 page regions should disappear from view.
+4. The content must remain saved internally.
+5. Switching back to Infinite Canvas must restore the original content in exactly its previous location.
+
+The same principle applies to Infinite Scroll.
+
+Use clipping regions and presentation-level visibility rules.
+
+Do not destructively resize, reposition, crop or delete content when switching formats.
+
+Think of page formats as different ways of presenting the same underlying workspace.
+
+---
+
+# 5. Page Customisation
+
+Create a dedicated Page Settings panel.
+
+Users must be able to modify the following settings.
+
+## A. Page Orientation
+
+Only two options:
+
+- Portrait.
+- Landscape.
+
+## B. Page Size
+
+A4 only.
+
+Use actual A4 proportions:
+
+- Portrait: 210 × 297 mm.
+- Landscape: 297 × 210 mm.
+
+Do not introduce other paper sizes.
+
+## C. Page Colour
+
+Provide a selection of monochromatic paper colours:
+
+- Pure white.
+- Off-white.
+- Light grey.
+- Medium grey.
+- Dark charcoal.
+- Black.
+
+Ensure that template contrast automatically adjusts according to the selected page colour.
+
+For example, dark templates should not become invisible on dark paper.
+
+## D. Page Template
+
+Provide the following built-in templates:
+
+### Lined
+
+- Lined (standard).
+- Lined (narrow).
+- Lined (wide).
+
+### Grid
+
+- Grid (standard).
+- Grid (narrow).
+- Grid (wide).
+
+### Dot
+
+- Dot (standard).
+- Dot (narrow).
+- Dot (wide).
+
+### Other
+
+- Oxford.
+
+### Custom
+
+An option labelled "Add Your Own".
+
+Users should be able to upload:
+
+- PNG files.
+- PDF files.
+
+The application should convert imported PDF template pages into suitable background assets.
+
+For a multipage PDF, allow the user to choose which PDF page to use as the template.
+
+Provide a preview before applying the imported template.
+
+Allow the user to remove or replace custom templates.
+
+Imported templates should be stored locally and remain available after restarting the application.
+
+### Template Rendering Architecture
+
+This requires special attention because the templates must work in all three document formats.
+
+Do NOT generate a giant background image.
+
+Instead:
+
+- Render built-in templates procedurally using CSS, SVG or canvas patterns.
+- Use consistent mathematical spacing.
+- Reuse the same rendering implementation across all formats.
+- Repeat the pattern across successive A4 pages.
+- In Infinite Canvas mode, repeat the template seamlessly across the world coordinate system.
+- Ensure that the pattern does not visibly jump or reset when zooming or panning.
+- Render custom PDF/PNG templates as repeating page-sized background assets.
+
+Suggested initial spacing values:
+
+| Template | Standard | Narrow | Wide |
+|---|---:|---:|---:|
+| Lined | 7 mm | 5 mm | 9 mm |
+| Grid | 5 mm | 3 mm | 8 mm |
+| Dot | 5 mm | 3 mm | 8 mm |
+
+Oxford paper should use standard horizontal ruling with a vertical margin line.
+
+These values can be refined later.
+
+All templates must remain crisp and appropriately scaled at different zoom levels.
+
+---
+
+# 6. Drawing and Handwriting System
+
+The drawing experience should be heavily inspired by Samsung Notes.
+
+The vertical toolbar should contain dedicated drawing tools.
+
+Clicking an icon should open a floating settings panel associated with that tool.
+
+Only one tool popup should be open at a time.
+
+Clicking elsewhere, clicking another tool or pressing Escape should close the existing popup.
+
+The popup should not remain permanently attached to the screen.
+
+## A. Pen Tool
+
+Clicking the pen icon should open a floating panel similar to the first supplied screenshot.
+
+The panel should contain:
+
+### Pen Presets
+
+Provide five distinct pen types:
+
+1. Fountain pen.
+2. Ballpoint pen.
+3. Marker.
+4. Pencil.
+5. Brush pen.
+
+Each should have its own stroke characteristics.
+
+Examples:
+
+- Fountain pen: pressure-sensitive strokes with a tapered, ink-like appearance.
+- Ballpoint: consistent, precise strokes.
+- Marker: thicker, smooth strokes.
+- Pencil: textured-looking strokes.
+- Brush: variable-width strokes depending on pressure and movement.
+
+Allow users to select a pen preset.
+
+### Stroke Width
+
+Provide:
+
+- Minus button.
+- Adjustable slider.
+- Current numerical width.
+- Plus button.
+
+Changing the slider should immediately affect the selected pen.
+
+Stroke widths should be adjustable over a practical range.
+
+Support pressure-sensitive stylus input where available.
+
+### Straighten Lines
+
+Include a toggle labelled:
+
+"Straighten lines"
+
+When enabled, recognise approximately straight strokes and smooth or correct them into straight lines.
+
+This should not interfere with normal handwriting unnecessarily.
+
+### Colour Selection
+
+Provide a row of recent colours and quick-access swatches.
+
+The default swatches should use white, black and shades of grey.
+
+Allow custom colour selection for actual written content, while keeping the colour-picker interface itself monochromatic.
+
+Include:
+
+- Eyedropper.
+- Custom colour picker.
+- Recent colours.
+- Saved pen presets/favourites.
+
+### Popup Controls
+
+Include:
+
+- Save/favourite preset.
+- Expand/collapse option.
+- Close button.
+
+Allow the user to customise and retain their preferred pen configurations.
+
+## B. Highlighter
+
+The highlighter should have its own popup.
+
+Include:
+
+- Multiple highlighter styles.
+- Stroke-width adjustment.
+- Colour selection.
+- Opacity adjustment.
+- Straight-line correction where appropriate.
+
+Highlighter strokes should render beneath or appropriately blend with handwriting rather than obscuring it.
+
+## C. Eraser
+
+Provide:
+
+- Stroke eraser.
+- Area eraser.
+
+The stroke eraser should remove the selected stroke.
+
+The area eraser should remove only the intersecting portions of strokes and other supported drawing elements, rather than deleting an entire large stroke unnecessarily.
+
+Provide adjustable eraser size.
+
+## D. Lasso Selection
+
+Implement a freeform selection tool.
+
+Users should be able to draw a selection boundary around existing content.
+
+The selection should support:
+
+- Move.
+- Resize.
+- Rotate.
+- Copy.
+- Cut.
+- Paste.
+- Duplicate.
+- Delete.
+
+It should recognise and select supported ink strokes and shapes.
+
+Provide a clearly visible selection boundary and transformation handles.
+
+## E. Shapes and Straight-Line Tool
+
+Provide common drawing shapes:
+
+- Straight line.
+- Arrow.
+- Rectangle.
+- Rounded rectangle.
+- Circle/ellipse.
+- Triangle.
+- Polygon.
+
+Allow users to select stroke width and colour.
+
+Support shape recognition where practical.
+
+For example, approximately circular handwriting should be convertible into a clean circle when shape recognition is enabled.
+
+---
+
+# 7. Popup and Tool Interaction Behaviour
+
+This is an important part of recreating the usability of the reference interface.
+
+Every toolbar tool must have predictable behaviour.
+
+Rules:
+
+1. Clicking a tool selects it.
+2. Clicking its settings icon or selected tool again should open or close its configuration popup.
+3. Clicking a different tool closes the previous popup.
+4. Clicking outside a popup closes it.
+5. Pressing Escape closes it.
+6. Only one popup can be open at a time.
+7. Popups should appear near the relevant toolbar icon.
+8. Popups must remain within the visible application area.
+9. Popup interactions should not accidentally draw on the canvas.
+10. Tool selection and tool configuration must remain separate states.
+
+Do not create multiple permanently visible side panels for individual tools.
+
+The interface should remain clean.
+
+---
+
+# 8. Keyboard and Rich-Text Editor
+
+The keyboard tool is a major part of One Book.
+
+It must not behave like a conventional floating text box.
+
+When the keyboard icon is clicked, activate a proper document-style rich-text editor.
+
+The writing experience should resemble Google Docs or Microsoft Word.
+
+### Fundamental behaviour
+
+- The cursor should start at the top-left content margin when the document is empty.
+- Users should be able to type continuously.
+- Text should automatically wrap.
+- Text should flow naturally into subsequent pages.
+- Users should never have to manually resize text boxes.
+- Users should not have to manually create a new page when text reaches the bottom of an existing page.
+- The editor should support normal keyboard shortcuts.
+- Text content should coexist with the drawing and handwriting system.
+
+Use a single continuous rich-text document model, not a collection of unrelated textarea elements.
+
+The editor should behave as a unified document that can be visually presented through the three page formats.
+
+### Rich-Text Toolbar
+
+When keyboard mode is active, show an appropriate text-formatting toolbar.
+
+Include:
+
+**Basic formatting**
+- Font family.
+- Font size.
+- Bold.
+- Italic.
+- Underline.
+- Strikethrough.
+- Text colour.
+- Text highlight.
+
+**Paragraph formatting**
+- Left alignment.
+- Centre alignment.
+- Right alignment.
+- Justification.
+- Bulleted lists.
+- Numbered lists.
+- Indentation.
+- Line spacing.
+
+**Advanced formatting**
+- Heading levels.
+- Hyperlinks.
+- Superscript.
+- Subscript.
+- Undo.
+- Redo.
+
+### Fonts
+
+Provide an initial font library containing:
+
+- Lora.
+- Cormorant Garamond.
+- Libre Baskerville.
+- Georgia.
+- Times New Roman.
+- Arial.
+- Courier New.
+- IBM Plex Mono.
+
+Make the default document font Lora.
+
+Allow font sizes to be changed easily.
+
+### Text Layout
+
+Use automatic pagination.
+
+Text must reflow properly when:
+
+- Page orientation changes.
+- Page format changes.
+- Page margins change.
+- Font size changes.
+- Font family changes.
+
+Avoid implementing each page as an independent editor.
+
+Maintain one underlying rich-text document and implement a pagination/layout system that places content into the visible page representation.
+
+In particular, preserve the cursor position, text selection and editing state when pagination is recalculated.
+
+---
+
+# 9. Input and Gesture Support
+
+Support:
+
+### Mouse
+- Left-click drawing.
+- Scrolling.
+- Dragging.
+- Selection.
+- Zooming with suitable modifiers.
+
+### Stylus
+- Pressure sensitivity where supported.
+- Smooth strokes.
+- Low-latency rendering.
+- Natural stroke tapering.
+- Palm rejection where supported.
+
+### Touchscreen
+- Pinch to zoom.
+- Two-finger pan.
+- Appropriate touch navigation.
+- Stylus drawing without accidental touch interference.
+
+Use browser Pointer Events rather than implementing completely separate drawing systems for mouse, touch and stylus.
+
+Support undo and redo across all editing operations.
+
+---
+
+# 10. Application Behaviour and Document Management
+
+The application should include a minimal notebook/library screen.
+
+Users should be able to:
+
+- Create a notebook.
+- Rename a notebook.
+- Open a notebook.
+- Delete a notebook with confirmation.
+- Create multiple notes.
+- Rename notes.
+- Duplicate notes.
+- Delete notes.
+- Search notes by title.
+- Open recently edited notes.
+
+The editor should automatically save changes.
+
+Use local persistent storage.
+
+The user should not lose work when refreshing the browser or closing the application.
+
+### Import and Export
+
+Support:
+
+- PDF import.
+- PNG/image import.
+- PDF export.
+- PNG export of the current page or selected canvas region.
+
+Preserve page dimensions and formatting during PDF export.
+
+Provide a sensible export workflow.
+
+### Undo and Redo
+
+Use a centralised command/history system.
+
+Undo and redo should cover:
+- Pen strokes.
+- Erasing.
+- Shape creation.
+- Selection transformations.
+- Deletion.
+- Text editing.
+- Page/template configuration where appropriate.
+
+History must not cause excessive memory consumption.
+
+---
+
+# 11. System Architecture
+
+Use a modular architecture rather than putting the entire application inside one React component.
+
+## Recommended Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Language | TypeScript |
+| UI framework | React |
+| Build system | Vite |
+| Styling | CSS Modules or structured CSS |
+| Application state | Zustand |
+| Rich-text editor | Tiptap / ProseMirror |
+| Drawing engine | HTML Canvas with a vector-based stroke model |
+| Stroke rendering | Perfect Freehand |
+| PDF processing | PDF.js |
+| Persistent storage | IndexedDB using Dexie |
+| Icons | Lucide |
+| Runtime validation | Zod |
+| Unit testing | Vitest |
+| Browser testing | Playwright |
+
+Use strict TypeScript configuration.
+
+Avoid unnecessary dependencies and avoid using `any` as a substitute for proper type definitions.
+
+## Architecture Overview
+
+Organise the application into six logical systems.
+
+### 1. Application Shell
+
+Responsible for:
+- Navigation.
+- Toolbars.
+- Popups.
+- Settings.
+- Notebook library.
+- Application layout.
+
+### 2. Document Engine
+
+Responsible for:
+- Document structure.
+- Document metadata.
+- Page settings.
+- Document format.
+- Orientation.
+- Page generation.
+- Content coordinates.
+
+### 3. Rendering Engine
+
+Responsible for:
+- Page surfaces.
+- Background templates.
+- Ink rendering.
+- Shape rendering.
+- Text presentation.
+- Canvas zooming.
+- Canvas panning.
+- Clipping and visibility.
+
+### 4. Input Engine
+
+Responsible for:
+- Mouse input.
+- Stylus input.
+- Touch input.
+- Pen tools.
+- Eraser.
+- Lasso.
+- Shape recognition.
+- Gesture handling.
+
+### 5. Editing Engine
+
+Responsible for:
+- Tiptap rich-text editing.
+- Text pagination.
+- Document selection.
+- Undo and redo.
+- Clipboard operations.
+
+### 6. Storage Engine
+
+Responsible for:
+- IndexedDB.
+- Automatic saving.
+- Document loading.
+- Asset storage.
+- Export.
+- Import.
+- Data validation.
+
+These systems should communicate through well-defined TypeScript interfaces.
+
+---
+
+# 12. Suggested Project Structure
+
+Use a maintainable directory structure similar to this:
+
+```text
+one-book/
+│
+├── public/
+│   ├── fonts/
+│   └── icons/
+│
+├── src/
+│   │
+│   ├── app/
+│   │   ├── App.tsx
+│   │   ├── routes.tsx
+│   │   └── providers/
+│   │
+│   ├── components/
+│   │   ├── TopBar/
+│   │   ├── ToolRail/
+│   │   ├── Popovers/
+│   │   ├── ColorPicker/
+│   │   ├── Slider/
+│   │   └── Dialogs/
+│   │
+│   ├── editor/
+│   │   ├── EditorView.tsx
+│   │   ├── TextEditor.tsx
+│   │   ├── TextToolbar.tsx
+│   │   ├── PaginationEngine.ts
+│   │   └── extensions/
+│   │
+│   ├── canvas/
+│   │   ├── CanvasEngine.ts
+│   │   ├── CanvasRenderer.ts
+│   │   ├── Viewport.ts
+│   │   ├── CoordinateSystem.ts
+│   │   ├── SpatialIndex.ts
+│   │   ├── StrokeRenderer.ts
+│   │   ├── ShapeRenderer.ts
+│   │   ├── LassoEngine.ts
+│   │   └── EraserEngine.ts
+│   │
+│   ├── pages/
+│   │   ├── PageEngine.ts
+│   │   ├── PageSurface.tsx
+│   │   ├── PageLayout.ts
+│   │   ├── PageTemplates.ts
+│   │   ├── TemplateRenderer.ts
+│   │   └── CustomTemplateImporter.ts
+│   │
+│   ├── tools/
+│   │   ├── PenTool.ts
+│   │   ├── HighlighterTool.ts
+│   │   ├── EraserTool.ts
+│   │   ├── LassoTool.ts
+│   │   ├── ShapeTool.ts
+│   │   └── InputController.ts
+│   │
+│   ├── store/
+│   │   ├── documentStore.ts
+│   │   ├── toolStore.ts
+│   │   ├── viewportStore.ts
+│   │   ├── historyStore.ts
+│   │   └── settingsStore.ts
+│   │
+│   ├── storage/
+│   │   ├── database.ts
+│   │   ├── documentRepository.ts
+│   │   ├── assetRepository.ts
+│   │   └── autosave.ts
+│   │
+│   ├── types/
+│   │   ├── document.ts
+│   │   ├── page.ts
+│   │   ├── tools.ts
+│   │   ├── strokes.ts
+│   │   └── assets.ts
+│   │
+│   ├── utils/
+│   │   ├── geometry.ts
+│   │   ├── colors.ts
+│   │   └── fileHelpers.ts
+│   │
+│   ├── styles/
+│   │   ├── variables.css
+│   │   ├── typography.css
+│   │   └── global.css
+│   │
+│   └── main.tsx
+│
+├── tests/
+│   ├── unit/
+│   └── integration/
+│
+├── package.json
+└── tsconfig.json
+```
+
+You may adjust the structure when necessary, but maintain separation between UI, document logic, drawing, rendering and persistence.
+
+---
+
+# 13. Core TypeScript Data Models
+
+Create a strongly typed document model.
+
+Use a unified underlying content model across all document formats.
+
+A suggested starting point:
+
+```typescript
+type DocumentMode =
+  | "split-pages"
+  | "infinite-scroll"
+  | "infinite-canvas";
+
+type PageOrientation =
+  | "portrait"
+  | "landscape";
+
+type ScrollDirection =
+  | "vertical"
+  | "horizontal";
+
+type PageSize = "A4";
+
+type TemplateType =
+  | "lined"
+  | "grid"
+  | "dot"
+  | "oxford"
+  | "custom";
+
+interface PageSettings {
+  size: PageSize;
+  orientation: PageOrientation;
+  backgroundColor: string;
+  template: TemplateConfig;
+}
+
+interface DocumentSettings {
+  mode: DocumentMode;
+  scrollDirection: ScrollDirection;
+  page: PageSettings;
+}
+
+interface TemplateConfig {
+  type: TemplateType;
+  variation?: "standard" | "narrow" | "wide";
+  assetId?: string;
+}
+
+interface Point {
+  x: number;
+  y: number;
+  pressure: number;
+  timestamp: number;
+}
+
+interface InkStroke {
+  id: string;
+  points: Point[];
+  color: string;
+  width: number;
+  tool: "fountain" | "ballpoint" | "marker"
+      | "pencil" | "brush" | "highlighter";
+}
+
+interface NotebookDocument {
+  id: string;
+  title: string;
+  settings: DocumentSettings;
+  content: DocumentContent;
+  createdAt: number;
+  updatedAt: number;
+}
+```
+
+Expand this model with appropriate types for:
+
+- Shapes.
+- Imported images.
+- Custom template assets.
+- Text content.
+- Page positions.
+- Selection state.
+- Canvas viewport.
+- Document history.
+
+Store drawing coordinates independently of screen coordinates.
+
+Use a consistent document/world coordinate system so that changing zoom, orientation or viewport does not corrupt existing content.
+
+---
+
+# 14. Critical Rendering and Performance Requirements
+
+The application should remain responsive even when notes contain thousands of strokes.
+
+Implement:
+
+### Coordinate System
+
+Maintain a transformation between:
+
+- Document/world coordinates.
+- Canvas coordinates.
+- Screen coordinates.
+
+Do not save screen coordinates as document positions.
+
+### Viewport Rendering
+
+Only render the parts of the document currently visible, plus a small buffer around the viewport.
+
+Use spatial indexing to find elements that intersect the visible region.
+
+### Infinite Canvas
+
+Use a tile-based or viewport-based rendering approach.
+
+Do not create an infinitely large canvas element.
+
+Do not recreate every background pattern when the user pans a few pixels.
+
+### Stroke Rendering
+
+Store strokes as vector data rather than immediately flattening everything into one bitmap.
+
+Use requestAnimationFrame for drawing updates.
+
+Avoid unnecessary React re-renders while the pointer is moving.
+
+### Zoom and Pan
+
+Use transformation matrices or an equivalent consistent coordinate system.
+
+All content must remain correctly anchored when zooming and panning.
+
+### Page Clipping
+
+Use clipping regions for individual page boundaries.
+
+In paginated modes, content outside active page boundaries should not render.
+
+However, it must remain stored.
+
+### High-DPI Support
+
+Ensure that the canvas renders clearly on high-resolution displays and different device pixel ratios.
+
+---
+
+# 15. State Management
+
+Use Zustand for application-level state.
+
+Separate:
+
+1. Document state.
+2. Active tool state.
+3. Tool configuration state.
+4. Viewport state.
+5. Popup state.
+6. Selection state.
+7. History state.
+
+Avoid placing every pointer movement into global React state.
+
+Transient drawing operations should remain inside the drawing engine until the stroke is committed.
+
+Tool popups should be managed centrally so that opening one automatically closes any other active popup.
+
+---
+
+# 16. Persistent Storage
+
+Use IndexedDB through Dexie.
+
+Persist:
+
+- Documents.
+- Rich-text JSON.
+- Drawing elements.
+- Shapes.
+- Page settings.
+- Custom templates.
+- Imported assets.
+- Saved pen configurations.
+- Document metadata.
+
+Implement automatic saving with debouncing.
+
+Also flush pending writes when the page becomes hidden or the editor is closed.
+
+Ensure that large drawing documents and uploaded assets do not have to be rewritten unnecessarily after every minor change.
+
+Use versioned storage schemas and migration logic so that future application updates do not invalidate existing notes.
+
+---
+
+# 17. Development Roadmap
+
+Do not attempt to implement everything simultaneously.
+
+Build the application in the following order.
+
+## Phase 1: Application Foundation
+
+Build:
+- React and TypeScript project.
+- Main application layout.
+- Top navigation.
+- Left toolbar.
+- Monochromatic design system.
+- Vintage typography.
+- Notebook library.
+- Basic document creation and opening.
+
+At the end of this phase, the UI should be functional and visually coherent.
+
+## Phase 2: Page Engine
+
+Implement:
+- A4 page dimensions.
+- Portrait and landscape.
+- Split Pages.
+- Infinite Scroll.
+- Infinite Canvas.
+- Vertical and horizontal scrolling.
+- Page colours.
+- Built-in repeating templates.
+- Automatic page generation.
+- Coordinate transformations.
+- Non-destructive switching between formats.
+
+This is a foundational phase. Make sure the document model supports all three formats before building the complete drawing interface.
+
+## Phase 3: Drawing Engine
+
+Implement:
+- Canvas rendering.
+- Pointer input.
+- Stylus pressure.
+- Five pen styles.
+- Stroke-width control.
+- Colour selection.
+- Highlighter.
+- Eraser.
+- Lasso.
+- Shapes.
+- Straighten-lines functionality.
+- Undo and redo.
+
+Then implement the floating tool-settings popups.
+
+## Phase 4: Rich-Text Editor
+
+Implement:
+- Tiptap integration.
+- Continuous document editing.
+- Formatting toolbar.
+- Font selection.
+- Automatic text wrapping.
+- Text pagination.
+- Text reflow.
+- Cursor and selection preservation.
+
+Make sure text does not behave like a floating textbox.
+
+## Phase 5: Custom Templates and External Content
+
+Implement:
+- PNG template upload.
+- PDF template upload.
+- PDF page selection.
+- Background preview.
+- Persistent template storage.
+- Image insertion.
+- PDF import.
+
+## Phase 6: Persistence and Export
+
+Implement:
+- IndexedDB.
+- Autosave.
+- Document reopening.
+- PDF export.
+- PNG export.
+- Data recovery.
+- Storage migrations.
+
+## Phase 7: Optimisation and Testing
+
+Test:
+- Large notes.
+- Hundreds and thousands of strokes.
+- Repeated zooming and panning.
+- Switching between all three document formats.
+- Portrait/landscape transitions.
+- Template switching.
+- Text pagination.
+- Undo and redo.
+- Browser refresh and document recovery.
+- Stylus and touch input.
+
+Fix performance problems before considering the application complete.
+
+---
+
+# 18. Acceptance Criteria
+
+The application should not be considered complete until the following conditions are satisfied.
+
+### Document formats
+
+- [ ] Split Pages displays individual A4 sheets with gaps.
+- [ ] Infinite Scroll displays connected A4 pages.
+- [ ] Infinite Canvas has no fixed boundaries.
+- [ ] Both paginated formats support vertical and horizontal scrolling.
+- [ ] Page orientation can be changed.
+- [ ] New pages appear automatically when required.
+- [ ] Canvas content is never deleted during format switching.
+- [ ] Content outside the active paginated boundaries is hidden and restored when returning to the canvas.
+
+### Templates
+
+- [ ] All nine lined, grid and dot variations work.
+- [ ] Oxford template works.
+- [ ] Custom PNG templates work.
+- [ ] Custom PDF templates work.
+- [ ] Templates repeat seamlessly.
+- [ ] Templates remain correctly scaled at different zoom levels.
+
+### Tools
+
+- [ ] All five pen types work.
+- [ ] Stroke-width adjustment works.
+- [ ] Straighten Lines works.
+- [ ] Highlighter works.
+- [ ] Eraser works.
+- [ ] Lasso works.
+- [ ] Shapes work.
+- [ ] Tool popups open and close correctly.
+- [ ] Tool settings persist.
+
+### Text editor
+
+- [ ] Keyboard mode opens a continuous rich-text document.
+- [ ] Text starts at the top of an empty document.
+- [ ] Text flows automatically.
+- [ ] Text pagination works.
+- [ ] Formatting works.
+- [ ] Text survives orientation and layout changes.
+- [ ] The application does not rely on independent floating text boxes.
+
+### Reliability
+
+- [ ] Changes save automatically.
+- [ ] Documents survive browser refresh.
+- [ ] PDF export works.
+- [ ] PNG export works.
+- [ ] Undo and redo work.
+- [ ] Large documents remain usable.
+
+---
+
+# 19. Instructions to the Development Agent
+
+Treat this specification as the product and architectural source of truth.
+
+Important implementation rules:
+
+1. Do not build a static mockup and call it complete.
+2. Do not replace complex features with decorative buttons.
+3. Do not use placeholder interactions.
+4. Do not put the entire application in one component.
+5. Do not sacrifice the document data model to make the initial UI easier.
+6. Do not use a single enormous bitmap for the infinite canvas.
+7. Do not destructively modify content during page-format transitions.
+8. Do not implement typed text as a collection of floating text boxes.
+9. Do not create manually managed pages when the document format is designed to expand automatically.
+10. Do not compromise the monochromatic visual identity.
+
+Prioritise a stable architecture over rushing through the feature list.
+
+When a feature is technically complex, implement it as a proper independent module rather than simulating it in the UI.
+
+Use actual TypeScript types, reusable components, error handling and tests.
+
+### Deliverables
+
+Produce:
+
+1. Complete project source code.
+2. Functional application.
+3. Clear project structure.
+4. Dependency and configuration files.
+5. Implemented document architecture.
+6. Working storage system.
+7. Instructions for installing and running the application.
+8. A list of completed features and any genuinely unfinished features.
+
+Start by establishing the architecture and project foundation, then implement the application in the specified sequence.
+
+**The ultimate goal is to make One Book feel like a sophisticated, unrestricted digital notebook: simple on the surface, but technically capable underneath.**

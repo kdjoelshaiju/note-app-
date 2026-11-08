@@ -1,0 +1,6 @@
+{
+  "name": "One Book",
+  "description": "Minimalist monochromatic digital notebook combining the fluidity of Samsung Notes, document flow of Google Docs, and freedom of an infinite canvas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
