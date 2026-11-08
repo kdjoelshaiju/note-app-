@@ -895,6 +895,10 @@ export function useDocumentStore() {
     setFolders((prev) => [...prev, newF]);
   }, []);
 
+  const replaceFolders = useCallback((nextFolders: Folder[]) => {
+    setFolders(nextFolders);
+  }, []);
+
   const deleteFolder = useCallback((folderId: string) => {
     setFolders((prev) => {
       const idsToDelete = new Set<string>([folderId]);
@@ -1001,9 +1005,10 @@ export function useDocumentStore() {
     restoreNotebook,
     emptyRecycleBin,
     moveToFolder,
-    folders,
-    createFolder,
-    deleteFolder,
-    refreshDocList
+      folders,
+      createFolder,
+      replaceFolders,
+      deleteFolder,
+      refreshDocList
   };
 }

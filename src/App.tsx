@@ -67,6 +67,7 @@ export function App() {
     moveToFolder,
     folders,
     createFolder,
+    replaceFolders,
     deleteFolder
   } = useDocumentStore();
 
@@ -226,6 +227,8 @@ export function App() {
         <CloudSettingsDialog
           isOpen={cloudSettingsOpen}
           documents={docList}
+          folders={folders}
+          onApplySyncedFolders={replaceFolders}
           onClose={() => setCloudSettingsOpen(false)}
         />
       </>
