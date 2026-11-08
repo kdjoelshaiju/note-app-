@@ -896,7 +896,25 @@ export function useDocumentStore() {
   }, []);
 
   const deleteFolder = useCallback((folderId: string) => {
-    setFolders((prev) => prev.filter((f) => f.id !== folderId));
+    setFolders((prev) => {
+      const idsToDelete = new Set<string>([folderId]);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        prev.forEach((folder) => {
+          if (folder.parentId && idsToDelete.has(folder.parentId) && !idsToDelete.has(folder.id)) {
+            idsToDelete.add(folder.id);
+            changed = true;
+          }
+        });
+      }
+      setDocList((docs) => docs.map((doc) => (
+        doc.folderId && idsToDelete.has(doc.folderId)
+          ? { ...doc, folderId: undefined }
+          : doc
+      )));
+      return prev.filter((folder) => !idsToDelete.has(folder.id));
+    });
   }, []);
 
   const deleteNotebook = useCallback(async (id: string) => {

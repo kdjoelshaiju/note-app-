@@ -19,7 +19,8 @@ import {
   ArrowUpDown,
   X,
   File,
-  RotateCcw
+  RotateCcw,
+  Settings2
 } from 'lucide-react';
 
 interface LibraryViewProps {
@@ -36,6 +37,7 @@ interface LibraryViewProps {
   onMoveToFolder: (id: string, folderId: string | undefined) => void;
   onCreateFolder: (name: string, parentId?: string | null) => void;
   onDeleteFolder: (folderId: string) => void;
+  onOpenSettings: () => void;
 }
 
 interface FolderTreeItemProps {
@@ -47,6 +49,7 @@ interface FolderTreeItemProps {
   onSelectCategory: (catId: string) => void;
   onSelectDocument: (doc: NotebookDocument) => void;
   onCreateFolder: (name: string, parentId?: string | null) => void;
+  onDeleteFolder: (folderId: string) => void;
 }
 
 // Recursive Nested Folder Tree Item (Supports Infinite Nested Subfolders & Notes)
@@ -58,7 +61,8 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   depth = 0,
   onSelectCategory,
   onSelectDocument,
-  onCreateFolder
+  onCreateFolder,
+  onDeleteFolder
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isAddingSub, setIsAddingSub] = useState(false);
@@ -112,22 +116,9 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
           <span className="truncate">{folder.name}</span>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <span className="font-editorial-mono text-[10px] text-[#78716c]">
-            {folderNotes.length}
-          </span>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsAddingSub(!isAddingSub);
-            }}
-            className="opacity-0 group-hover:opacity-100 p-0.5 text-[#8a867f] hover:text-[#f5f4f0] transition-opacity"
-            title="Add subfolder"
-          >
-            <Plus size={12} />
-          </button>
-        </div>
+        <span className="font-editorial-mono text-[10px] text-[#78716c]">
+          {folderNotes.length}
+        </span>
       </div>
 
       {/* Inline Subfolder creation form */}
@@ -164,6 +155,7 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
               onSelectCategory={onSelectCategory}
               onSelectDocument={onSelectDocument}
               onCreateFolder={onCreateFolder}
+              onDeleteFolder={onDeleteFolder}
             />
           ))}
 
@@ -203,13 +195,14 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onEmptyRecycleBin,
   onMoveToFolder,
   onCreateFolder,
-  onDeleteFolder: _onDeleteFolder
+  onDeleteFolder,
+  onOpenSettings
 }) => {
   // Sidebar expansion & folder section state
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(true);
   const [isFoldersOpen, setIsFoldersOpen] = useState(true);
 
-  // Active category filter: 'all' | 'recycle-bin' | folderId
+  // Active category filter: 'all' | 'folders' | 'recycle-bin' | folderId
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
   // Top bar state
@@ -240,7 +233,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       }
       if (d.isDeleted) return false;
 
-      if (activeCategory === 'all') return true;
+      if (activeCategory === 'all' || activeCategory === 'folders') return true;
       return d.folderId === activeCategory;
     })
     .filter((d) => {
@@ -261,6 +254,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   // Dynamic Header Title
   const activeCategoryTitle = React.useMemo(() => {
     if (activeCategory === 'all') return 'All notes';
+    if (activeCategory === 'folders') return 'Folders';
     if (isRecycleBinPage) return 'Recycle bin';
     const found = folders.find((f) => f.id === activeCategory);
     return found ? found.name : 'Folder Notes';
@@ -268,7 +262,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   // Fast Note Creation ("Hop Straight In" - zero modal setup!)
   const handleFastCreate = () => {
-    if (isRecycleBinPage) return; // Prevent creation in recycle bin
+    if (isRecycleBinPage || activeCategory === 'folders') return; // Prevent creation in recycle bin
     const currentFolder = activeCategory !== 'all' ? activeCategory : undefined;
     onCreateNotebook('', 'lined', '#fbfbf8', currentFolder);
   };
@@ -346,8 +340,29 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             )}
           </button>
 
-          {/* 2. Folders Tab with Dropdown & Infinite Nested Folders/Notes */}
+          {/* 2. Folders page and compact tree */}
           <div>
+            <button
+              onClick={() => setActiveCategory('folders')}
+              className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeCategory === 'folders' ? 'bg-[#292725] text-[#f5f4f0] shadow-sm' : 'text-[#a8a49d] hover:bg-[#1f1e1c] hover:text-[#e5e2dc]'
+              }`}
+              title="Folders"
+            >
+              <div className="flex items-center gap-3">
+                <FolderIcon size={17} className={activeCategory === 'folders' ? 'text-[#f5f4f0]' : 'text-[#8a867f]'} />
+                {isDrawerExpanded && <span>Folders</span>}
+              </div>
+              {isDrawerExpanded && <span className="font-editorial-mono text-[11px] rounded-full bg-[#201f1d] px-2 py-0.5 text-[#8a867f]">{folders.length}</span>}
+            </button>
+
+            <div
+              onClick={() => setIsFoldersOpen(!isFoldersOpen)}
+              className="mt-1 flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-xs text-[#8a867f] hover:bg-[#1f1e1c] hover:text-[#e5e2dc] transition-colors"
+            >
+              <span>{isFoldersOpen ? 'Hide folder tree' : 'Show folder tree'}</span>
+              {isFoldersOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </div>
             <div
               onClick={() => setIsFoldersOpen(!isFoldersOpen)}
               className="flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-xs font-medium text-[#a8a49d] hover:bg-[#1f1e1c] hover:text-[#e5e2dc] transition-colors"
@@ -377,33 +392,13 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     activeDocs={activeDocs}
                     activeCategory={activeCategory}
                     onSelectCategory={(id) => setActiveCategory(id)}
-                    onSelectDocument={onSelectDocument}
-                    onCreateFolder={onCreateFolder}
-                  />
+              onSelectDocument={onSelectDocument}
+              onCreateFolder={onCreateFolder}
+              onDeleteFolder={onDeleteFolder}
+            />
                 ))}
 
-                {/* Inline Add Root Folder Form */}
-                {isAddingFolder ? (
-                  <form onSubmit={handleCreateRootFolderSubmit} className="my-1 px-2">
-                    <input
-                      type="text"
-                      placeholder="New folder..."
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      onBlur={() => setIsAddingFolder(false)}
-                      autoFocus
-                      className="w-full rounded border border-[#57534e] bg-[#242321] px-2 py-1 font-editorial-body text-xs text-[#f5f4f0] outline-none"
-                    />
-                  </form>
-                ) : (
-                  <button
-                    onClick={() => setIsAddingFolder(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-[#8a867f] hover:text-[#f5f4f0] transition-colors"
-                  >
-                    <Plus size={13} />
-                    <span>Add root folder</span>
-                  </button>
-                )}
+
               </div>
             )}
           </div>
@@ -453,6 +448,19 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
           {/* Top Right Actions Group */}
           <div className="flex items-center gap-3">
+            <button
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenSettings();
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#2d2b28] bg-[#1d1c1a] text-[#a8a49d] transition-colors hover:bg-[#272523] hover:text-[#f5f4f0]"
+              title="App settings"
+              aria-label="Open app settings"
+            >
+              <Settings2 size={16} />
+            </button>
+
             {/* Search Bar */}
             <div className="relative w-56 sm:w-64">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#78716c]" />
@@ -575,7 +583,41 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           )}
 
-          {displayedDocs.length === 0 ? (
+          {activeCategory === 'folders' ? (
+            folders.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center text-center py-20">
+                <FolderIcon size={26} className="mb-3 text-[#78716c]" />
+                <h2 className="font-editorial-heading text-base font-medium text-[#d6d3cd]">No folders yet</h2>
+                <p className="font-editorial-mono text-xs text-[#78716c] mt-1">Create one from the more actions menu.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {folders.map((folder) => {
+                  const noteCount = activeDocs.filter((doc) => doc.folderId === folder.id).length;
+                  return (
+                    <div key={folder.id} className="group rounded-2xl border border-[#2d2b28] bg-[#1b1a18] p-4 transition-colors hover:border-[#57534e]">
+                      <div className="flex items-start justify-between gap-3">
+                        <button onClick={() => setActiveCategory(folder.id)} className="flex min-w-0 items-center gap-3 text-left">
+                          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#292725] text-[#d6d3cd]"><FolderIcon size={18} /></div>
+                          <span className="truncate font-editorial-heading text-sm font-semibold text-[#f5f4f0]">{folder.name}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDeleteFolder(folder.id)}
+                          className="rounded-lg p-1.5 text-[#78716c] opacity-0 transition-opacity hover:bg-[#302522] hover:text-[#fca5a5] group-hover:opacity-100"
+                          title={`Delete ${folder.name}`}
+                          aria-label={`Delete ${folder.name}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                      <p className="mt-4 font-editorial-mono text-[11px] text-[#78716c]">{noteCount} {noteCount === 1 ? 'note' : 'notes'}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : displayedDocs.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center py-20">
               <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#2d2b28] bg-[#1c1b1a] text-[#78716c]">
                 <FileText size={26} />
@@ -588,7 +630,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   ? 'Your recycle bin is completely empty.'
                   : 'Tap "+ New note" to hop straight into your workspace.'}
               </p>
-              {!isRecycleBinPage && (
+              {!isRecycleBinPage && activeCategory !== 'folders' && (
                 <button
                   onClick={handleFastCreate}
                   className="mt-4 flex items-center gap-2 rounded-xl bg-[#e5e2dc] px-4 py-2 text-xs font-semibold text-[#1a1918] hover:bg-[#ffffff]"
@@ -625,7 +667,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           )}
 
           {/* Fast Note Creation Floating Action Button (FAB) (REMOVED / HIDDEN IN RECYCLE BIN) */}
-          {!isRecycleBinPage && (
+          {!isRecycleBinPage && activeCategory !== 'folders' && (
             <button
               onClick={handleFastCreate}
               className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#e5e2dc] text-[#1a1918] shadow-2xl transition-all hover:bg-[#ffffff] hover:scale-105 active:scale-95"
