@@ -201,7 +201,8 @@ export function App() {
 
   if (appMode === 'library') {
     return (
-      <LibraryView
+      <>
+        <LibraryView
         documents={docList}
         folders={folders}
         currentDocId={currentDoc.id}
@@ -222,6 +223,12 @@ export function App() {
           onDeleteFolder={deleteFolder}
           onOpenSettings={() => setCloudSettingsOpen(true)}
         />
+        <CloudSettingsDialog
+          isOpen={cloudSettingsOpen}
+          documents={docList}
+          onClose={() => setCloudSettingsOpen(false)}
+        />
+      </>
     );
   }
 
